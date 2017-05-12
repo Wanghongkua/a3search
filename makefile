@@ -1,13 +1,13 @@
-FILES=
+program_C_SRCS := $(wildcard *.c)
 
 ALL:a3search
 
-a3search: a3search.c concept_search.c regular_search.c sort_query.c
-	gcc -o a3search -O3 a3search.c concept_search.c regular_search.c sort_query.c -I.
+a3search: ${program_C_SRCS}
+	gcc -o a3search -O3 ${program_C_SRCS} -I.
 
 
-debug: a3search.c concept_search.c regular_search.c sort_query.c
-	gcc -o a3search -g a3search.c concept_search.c regular_search.c sort_query.c -I.
+debug: ${program_C_SRCS}
+	gcc -o a3search -g ${program_C_SRCS} -I.
 
 clean:
 	rm -f *.o a3search
