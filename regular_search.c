@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "regular_search.h"
-#include "sort_query.h"
+#include "process_query.h"
+#include "process_index.h"
 
 void regular_search(int argc, char *argv[])
 {
@@ -10,10 +11,17 @@ void regular_search(int argc, char *argv[])
 
     unsigned int i;
     char *queries[N_QUERY];
+    char *query_stem[N_QUERY];
 
-    init_query(queries, N_QUERY, argv, STARTING);
+    /*
+     *stem the query
+     */
+    process_query(queries, query_stem, argv, N_QUERY, STARTING);
 
-    sort_query(queries, N_QUERY);
+    /*
+     *create or load the index file
+     */
+    process_index(argv);
 
-    free_query(queries, N_QUERY);
+    free_query(queries, query_stem, N_QUERY);
 }

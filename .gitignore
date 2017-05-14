@@ -8,3 +8,11 @@ legal1
 legal2
 man
 simple
+*.o
+*.txt
+files
+libstemmer_c/*.o
+libstemmer_c/src_c/*.o
+libstemmer_c/runtime/*.o
+libstemmer_c/libstemmer/*.o
+index_files
