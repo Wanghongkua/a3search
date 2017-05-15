@@ -16,3 +16,4 @@ libstemmer_c/src_c/*.o
 libstemmer_c/runtime/*.o
 libstemmer_c/libstemmer/*.o
 index_files
+dumped.c

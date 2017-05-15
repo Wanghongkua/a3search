@@ -11,6 +11,9 @@ const unsigned int BUFFER_SIZE = 4096;
 static char *slash = "/";
 unsigned int num_token;
 
+/*
+ *check if c_char is english charactor
+ */
 int isAlpha(char *c_char)
 {
     unsigned int c_num = *c_char;
@@ -21,17 +24,6 @@ int isAlpha(char *c_char)
     }
     return 0;
 }
-
-/*void append_index(char *c_stem, char *argv[], char *index_file_name)*/
-/*{*/
-    /*FILE *index_file;*/
-
-    /*compute_file_name(argv[2], c_stem, index_file_name);*/
-
-
-    /*fclose(index_file);*/
-    /*printf("%s\n", index_file_name);*/
-/*}*/
 
 /*
  *create index files
@@ -92,6 +84,7 @@ void create_index(char *flag_file_name, char *argv[])
 
         root = malloc(sizeof(struct word_frequency));
         root->next = NULL;
+        root->previous = NULL;
         root->c_stem = NULL;
         root->frequency = 0;
 
@@ -104,20 +97,19 @@ void create_index(char *flag_file_name, char *argv[])
                 if (isAlpha(c_char)) {
                     strcat(c_word, c_char);
                 }else{
+                    /* TODO: check if add last word */
                     if (strlen(c_word) >= 3) {
                         get_stem(c_word, c_stem);
 
-                        /*printf("%s\t\t%s\n", c_word, c_stem);*/
-                        add_to_root(c_stem, root);
-                        /*append_index(c_stem, argv, index_file_name);*/
+                        add_to_root(c_stem, &root);
                         /*c_stem[0] = '\0';*/
                     }
                     c_word[0] = '\0';
                 }
             }
         }
-        /* TODO: save root to file */
         save_to_file(root, argv[2], dp->d_name, index_file_name);
+
         free_word_frequency(root);
         fclose(origin_file);
     }
@@ -134,33 +126,26 @@ void create_index(char *flag_file_name, char *argv[])
     free(index_file_name);
 }
 
+/*
+ *save sorted_frequency to index file
+ */
 void save_to_file(struct word_frequency *root, char *dir_name, char *file_name, char *index_file_name)
 {
     struct word_frequency *sorted_frequency[num_token];
     init_sorted_frequency(sorted_frequency, root);
-    sort_frequency(sorted_frequency);
-
-    /*unsigned int i;*/
-    /*for (i = 0; i < num_token; ++i) {*/
-        /*printf("%s\t%d\n", sorted_frequency[i]->c_stem, sorted_frequency[i]->frequency);*/
-    /*}*/
 
     compute_file_name(dir_name, file_name, index_file_name);
+
+    FILE *index_file;
+    index_file = fopen(index_file_name, "wb");
+    /* TODO: how to store the data */
+
+    fclose(index_file);
 }
 
-void sort_frequency(struct word_frequency *sorted_frequency[])
-{
-    qsort(sorted_frequency, num_token, sizeof(struct word_frequency *), compare_word);
-}
-
-int compare_word(const void* a, const void* b)
-{
-    struct word_frequency **arg1 = (struct word_frequency **)a;
-    struct word_frequency **arg2 = (struct word_frequency **)b;
-
-    return strcmp((*arg1)->c_stem, (*arg2)->c_stem);
-}
-
+/*
+ *init sorted_frequency
+ */
 void init_sorted_frequency(struct word_frequency *sorted_frequency[], struct word_frequency *root)
 {
     unsigned int i = 0;
@@ -174,53 +159,106 @@ void init_sorted_frequency(struct word_frequency *sorted_frequency[], struct wor
     }
 }
 
+/*
+ *free word frequency linked list
+ */
 void free_word_frequency(struct word_frequency *root)
 {
     if (root->next != NULL) {
         free_word_frequency(root->next);
     }
-    /*if (root->c_stem != NULL) {*/
-        /*printf("%s\t%d\n", root->c_stem, root->frequency);*/
-    /*}*/
     free(root);
 }
 
-void add_to_root(char *c_stem, struct word_frequency *root)
+/*
+ *add token to word frequency
+ */
+void add_to_root(char *c_stem, struct word_frequency **root)
 {
     struct word_frequency *next_word;
-    next_word = root;
-    /*while (next_word->c_stem != NULL) {*/
+    struct word_frequency *new_word;
+
+    int current = 0;
+
+    next_word = *root;
     while (1) {
         if (next_word->c_stem == NULL) {
 
-            next_word->c_stem = malloc(sizeof(char) * (strlen(c_stem + 1)));
+            next_word->c_stem = malloc(sizeof(char) * (strlen(c_stem) + 1));
             strcpy(next_word->c_stem, c_stem);
 
-            next_word->frequency = 0;
+            next_word->frequency = 1;
             next_word->next = NULL;
+            next_word->previous = NULL;
 
             num_token += 1;
             break;
-        }
-        if (strcmp(next_word->c_stem, c_stem) == 0) {
-            break;
-        }
-        if (next_word->next == NULL) {
-            next_word->next = malloc(sizeof(struct word_frequency));
-            next_word = next_word->next;
+        }else{
+            current = strcmp(c_stem, next_word->c_stem);
+            /*printf("%s compare with %s, %d\n", next_word->c_stem, c_stem, current);*/
+            if (current == 0) {
+                next_word->frequency += 1;
+                break;
+            } else if (current < 0) {
+                new_word = malloc(sizeof(struct word_frequency));
+                new_word->c_stem = malloc(sizeof(char) * (strlen(c_stem) + 1));
+                new_word->frequency = 1;
+                strcpy(new_word->c_stem, c_stem);
 
-            next_word->next = NULL;
-            next_word->frequency = 0;
-            next_word->c_stem = malloc(sizeof(char) * (strlen(c_stem + 1)));
-            strcpy(next_word->c_stem, c_stem);
-            /*printf("%s\n", next_word->c_stem);*/
+                /*swap*/
+                new_word->next = next_word;
 
-            num_token += 1;
-            break;
+                new_word->previous = next_word->previous;
+                if (next_word->previous != NULL) {
+                    next_word->previous->next = new_word;
+                } else {
+                    *root = new_word;
+                }
+                next_word->previous = new_word;
+
+                num_token += 1;
+
+                break;
+
+            } else if (current > 0) {
+                if (next_word->next == NULL) {
+                    /*swap*/
+                    new_word = malloc(sizeof(struct word_frequency));
+                    new_word->c_stem = malloc(sizeof(char) * (strlen(c_stem) + 1));
+                    new_word->frequency = 1;
+                    strcpy(new_word->c_stem, c_stem);
+
+                    new_word->previous = next_word;
+                    new_word->next = NULL;
+
+                    next_word->next = new_word;
+
+                    num_token += 1;
+                    break;
+                }
+                next_word = next_word->next;
+            }
+
+            /*if*/
         }
-        next_word = next_word->next;
+        /*if (strcmp(next_word->c_stem, c_stem) == 0) {*/
+            /*break;*/
+        /*}*/
+        /*if (next_word->next == NULL) {*/
+            /*next_word->next = malloc(sizeof(struct word_frequency));*/
+            /*next_word = next_word->next;*/
+
+            /*next_word->next = NULL;*/
+            /*next_word->frequency = 0;*/
+            /*next_word->c_stem = malloc(sizeof(char) * (strlen(c_stem + 1)));*/
+            /*strcpy(next_word->c_stem, c_stem);*/
+
+            /*num_token += 1;*/
+            /*break;*/
+        /*}*/
+        /*next_word = next_word->next;*/
     }
-    next_word->frequency += 1;
+    /*next_word->frequency += 1;*/
 }
 
 /*
@@ -259,7 +297,6 @@ void process_index(char *argv[])
 {
     char *flag_file_name;
     flag_file_name = compute_flag_file(argv[2]);
-    /*printf("%s\n", flag_file_name);*/
 
     if (exist_index(flag_file_name)) {
         /*load_index()*/

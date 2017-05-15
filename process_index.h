@@ -10,11 +10,12 @@ struct word_frequency {
     char *c_stem;
     unsigned int frequency;
     struct word_frequency *next;
+    struct word_frequency *previous;
 };
 
-extern void add_to_root(char *c_stem, struct word_frequency *root);
+extern void add_to_root(char *c_stem, struct word_frequency **root);
 extern void free_word_frequency(struct word_frequency *root);
-extern int compare_word(const void* a, const void* b);
+//extern int compare_word(const void* a, const void* b);
 extern void init_sorted_frequency(struct word_frequency *sorted_frequency[], struct word_frequency *root);
-extern void sort_frequency(struct word_frequency *sorted_frequency[]);
+//extern void sort_frequency(struct word_frequency *sorted_frequency[]);
 extern void save_to_file(struct word_frequency *root, char *dir_name, char *file_name, char *index_file_name);
