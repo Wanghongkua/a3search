@@ -9,7 +9,7 @@ void regular_search(int argc, char *argv[])
     const int STARTING = 3;
     const int N_QUERY = argc - STARTING;
 
-    unsigned int i;
+    /*unsigned int i;*/
     char *queries[N_QUERY];
     char *query_stem[N_QUERY];
 
