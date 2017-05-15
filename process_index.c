@@ -116,6 +116,8 @@ void create_index(char *flag_file_name, char *argv[])
 
     delete_stemmer();
 
+    /*merge_index_file(argv, origin_dir);*/
+
     closedir(origin_dir);
 
     free(buffer);
@@ -126,21 +128,57 @@ void create_index(char *flag_file_name, char *argv[])
     free(index_file_name);
 }
 
+void merge_index_file(char *argv[], DIR *origin_dir, char *index_file_name)
+{
+    struct dirent *dp;
+
+    rewinddir(origin_dir);
+    while ((dp = readdir(origin_dir)) != NULL) {
+        if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
+            continue;
+        }
+        compute_file_name(argv[2], dp->d_name, index_file_name);
+    }
+
+}
+
 /*
  *save sorted_frequency to index file
  */
 void save_to_file(struct word_frequency *root, char *dir_name, char *file_name, char *index_file_name)
 {
     struct word_frequency *sorted_frequency[num_token];
-    init_sorted_frequency(sorted_frequency, root);
+    unsigned int i;
 
+    init_sorted_frequency(sorted_frequency, root);
     compute_file_name(dir_name, file_name, index_file_name);
 
     FILE *index_file;
     index_file = fopen(index_file_name, "wb");
-    /* TODO: how to store the data */
 
+    for (i = 0; i < num_token; ++i) {
+        fwrite(sorted_frequency[i]->c_stem, strlen(sorted_frequency[i]->c_stem), 1, index_file);
+        /*write frequency*/
+        compress_print(sorted_frequency[i]->frequency - 1, index_file);
+    }
     fclose(index_file);
+}
+
+/*
+ *print frequency
+ */
+void compress_print(unsigned int b, FILE *wfp)
+{
+    char c;
+    if (b == 0) {
+        c = 0b10000000;
+        fwrite(&c, 1, 1, wfp);
+    }
+    while (b != 0) {
+        c = (b & 0b01111111) | 0b10000000;
+        fwrite(&c, 1, 1, wfp);
+        b >>= 7;
+    }
 }
 
 /*
