@@ -1,6 +1,6 @@
 include mkinc.mak
 CFLAGS=-Ilibstemmer_c/include
-objects = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o libstemmer.o
+objects = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o libstemmer.o rank_file.o
 program_C_SRCS := $(wildcard *.c)
 
 ALL: $(objects)
@@ -23,6 +23,9 @@ process_index.o: process_index.c process_index.h
 
 stemmer.o: stemmer.c stemmer.h
 	gcc -c stemmer.c
+
+rank_file.o: rank_file.c rank_file.h
+	gcc -c rank_file.c
 
 libstemmer.o: $(snowball_sources:.c=.o)
 	$(AR) -cru $@ $^

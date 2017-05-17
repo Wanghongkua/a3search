@@ -5,7 +5,6 @@
 #include "stemmer.h"
 #include "libstemmer_c/include/libstemmer.h"
 
-int comp (const void * elem1, const void * elem2);
 
 int comp (const void * elem1, const void * elem2) 
 {
