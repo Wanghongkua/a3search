@@ -23,5 +23,9 @@ void regular_search(int argc, char *argv[])
      */
     process_index(argv);
 
+    printf("finish print index\n");
+    exit(0);
+
     free_query(queries, query_stem, N_QUERY);
+
 }

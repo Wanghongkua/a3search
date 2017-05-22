@@ -18,7 +18,9 @@ void init_stemmer()
     int lim = INC;
 
     b = (sb_symbol *) malloc(lim * sizeof(sb_symbol));
-
+    if (b == NULL) {
+        printf("terminate in init_stemmer\n");
+    }
 }
 
 void delete_stemmer()
@@ -36,6 +38,7 @@ void get_stem(char *src, char *dest)
     }
     j = strlen(src);
     const sb_symbol * stemmed = sb_stemmer_stem(stemmer, b, j);
+
     if (stemmed == NULL) {
         fprintf(stderr, "Out of memory");
         exit(1);
