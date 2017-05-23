@@ -11,3 +11,4 @@ extern int isAlpha(char *c_char);
 extern char * compute_flag_file(char *dir);
 extern int exist_index(char *flag_file_name);
 extern int a_comp(const void * elem1, const void * elem2);
+extern void merge_index(char *argv[], unsigned int num_file);

@@ -7,9 +7,12 @@
 #include "stemmer.h"
 #include "word_frequency.h"
 #include "process_index.h"
+#include "tmp_index.h"
+#include "merge_index.h"
 
 const unsigned int FILE_NAME_SIZE = 256;
 const unsigned int BUFFER_SIZE = 4096;
+const double BLOCK = 200;
 static char *preffix;
 static char *slash = "/";
 unsigned int num_file;
@@ -36,13 +39,6 @@ int isAlpha(char *c_char)
     if ( (*c_char >= 'a' && *c_char <= 'z') || (*c_char >= 'A' && *c_char <= 'Z')) {
         return 1;
     }
-    return 0;
-    /*unsigned int c_num = *c_char;*/
-    /*if (c_num >= 65 && c_num <=97) {*/
-        /*return 1;*/
-    /*} else if (c_num >= 90 && c_num <= 122) {*/
-        /*return 1;*/
-    /*}*/
     return 0;
 }
 
@@ -172,16 +168,74 @@ void create_index(char *flag_file_name, char *argv[])
 
     append_index(origin_files, argv);
 
-    /*printf("finish append_index\n");*/
+    printf("finish append_index\n");
+    exit(0);
 
     free_origin_files(origin_files);
 
 
     delete_stemmer();
 
-    /*merge_index_file(argv, origin_dir, index_file_name);*/
+    merge_index(argv, num_file);
+
+    printf("finish merge_index\n");
 
     closedir(origin_dir);
+}
+
+void merge_index(char *argv[], unsigned int num_file)
+{
+    unsigned int num_block = 0;
+    unsigned int i;
+
+    char *index_file_name;
+    index_file_name = malloc(sizeof(char) * (strlen(argv[2]) + FILE_NAME_SIZE + 2));
+    if (index_file_name == NULL) {
+        printf("no memory for index_file_name\n");
+    }
+
+    if (num_file > BLOCK) {
+        num_block = BLOCK;
+    } else {
+        num_block = num_file;
+    }
+    char index_block[100];
+    FILE *index_files[num_block];
+    char *first_str[num_block];
+
+    for (i = 0; i < num_block; ++i) {
+        sprintf(index_block, "%d", i);
+        compute_file_name(argv[2], index_block, index_file_name);
+        index_files[i] = fopen(index_file_name, "rb");
+        first_str[i] = malloc(sizeof(char) * 200);
+    }
+    
+    FILE *final_index;
+    FILE *final_lookup;
+    char *final_index_name;
+    char *final_lookup_name;
+
+    final_index_name = malloc(sizeof(char) * (strlen(argv[2]) + FILE_NAME_SIZE + 2));
+    final_lookup_name = malloc(sizeof(char) * (strlen(argv[2]) + FILE_NAME_SIZE + 2));
+
+    compute_file_name(argv[2], "final_index.txt", final_index_name);
+    compute_file_name(argv[2], "final_lookup.txt", final_lookup_name);
+    final_index = fopen(final_index_name, "wb");
+    final_lookup = fopen(final_lookup_name, "wb");
+
+    save_to_one(num_block, index_files, first_str, final_index, final_lookup);
+
+    for (i = 0; i < num_block; ++i) {
+        fclose(index_files[i]);
+        free(first_str[i]);
+    }
+    fclose(final_index);
+    fclose(final_lookup);
+
+    free(index_file_name);
+    free(final_lookup_name);
+    free(final_index_name);
+
 }
 
 void append_index(char *origin_files[], char *argv[])
@@ -232,10 +286,11 @@ void append_index(char *origin_files[], char *argv[])
     }
     c_stem[0] = '\0';
 
-    double block = 200;
     unsigned int block_size;
-    if (num_file > block) {
-        block_size = ceil(num_file / block);
+    if (num_file > BLOCK) {
+        block_size = ceil(num_file / BLOCK);
+        /*printf("%d\n", block_size);*/
+        /*exit(0);*/
         /*block_size = 1;*/
     } else {
         block_size = 1;
@@ -246,14 +301,40 @@ void append_index(char *origin_files[], char *argv[])
      */
     preffix = malloc(sizeof(char) * 3);
 
-    for (i = 0; i < num_file + 1; ++i) {
+    char index_block[100];
 
+    sprintf(index_block, "%d", 0);
+    compute_file_name(argv[2], index_block, index_file_name);
+    change_file_name(index_file_name);
+
+    for (i = 0; i < num_file + 1; ++i) {
+        printf("\t\t%d\n", i);
         if (i == num_file) {
+            clean_wordfrequency();
+            free_filename();
             break;
         }
+        if (i % block_size == 0) {
+            if (i != 0) {
+                clean_wordfrequency();
+                free_filename();
+                sprintf(index_block, "%d", i / block_size);
+
+                printf("%s\n", index_block);
+
+                compute_file_name(argv[2], index_block, index_file_name);
+                change_file_name(index_file_name);
+            }
+        }
+
         compute_file_name(argv[1], origin_files[i], origin_file_name);
-        printf("%s\n", origin_file_name);
+        printf("\t\t%s\n", origin_file_name);
         origin_file = fopen(origin_file_name, "r");
+
+        /*
+         *change file number in index file
+         */
+        init_filenumber(i);
 
         while ((read_bytes = fread(buffer, 1, BUFFER_SIZE, origin_file))) {
             for (j = 0; j < read_bytes; ++j) {
@@ -276,10 +357,12 @@ void append_index(char *origin_files[], char *argv[])
                 }
             }
         }
+        change_to_next();
         /* TODO: same to file */
-        clean_wordfrequency();
+        /*clean_wordfrequency();*/
 
         fclose(origin_file);
+        printf("-------\n");
     }
 
     free(preffix);

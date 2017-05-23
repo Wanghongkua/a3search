@@ -1,0 +1,11 @@
+//extern void save_to_one(unsigned int num_block, FILE *indexfiles[], char *first_str[]);
+extern int isEmpty(short unsigned int block_mask[]);
+extern void find_max_size(FILE *index_files[], long int file_size[]);
+extern void init_block_mask(short unsigned int block_mask[]);
+//extern void add_to_first_str(FILE *indexfiles, char *first_str, short unsigned int block_mask[]);
+extern int add_to_first_str(FILE *indexfile, char *first_str);
+extern void find_smallest(char *first_str[], short unsigned int block_mask[]);
+//extern void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[], FILE *final_index);
+extern void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[], FILE *final_index, FILE *final_lookup);
+extern void save_to_file(char *first_str[], short unsigned int block_mask[], FILE *index_files[], FILE *final_index);
+extern void save_lookup(int pos, FILE *final_lookup);
