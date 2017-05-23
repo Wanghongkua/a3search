@@ -187,7 +187,8 @@ void create_index(char *flag_file_name, char *argv[])
     append_index(origin_files, argv);
 
     printf("finish append_index\n");
-    exit(0);
+    /* exit(0); */
+
 
     free_origin_files(origin_files);
 
@@ -326,7 +327,7 @@ void append_index(char *origin_files[], char *argv[])
     change_file_name(index_file_name);
 
     for (i = 0; i < num_file + 1; ++i) {
-        printf("\t\t%d\n", i);
+        /* printf("\t\t%d\n", i); */
         if (i == num_file) {
             clean_wordfrequency();
             free_filename();
@@ -338,18 +339,18 @@ void append_index(char *origin_files[], char *argv[])
                 free_filename();
                 sprintf(index_block, "%d", i / block_size);
 
-                printf("%s\n", index_block);
+                /* printf("%s\n", index_block); */
 
                 compute_file_name(argv[2], index_block, index_file_name);
                 change_file_name(index_file_name);
             }
         }
-        printf("\t\t%s", origin_files[i]);
+        /* printf("\t\t%s", origin_files[i]); */
         *origin_file_name = '\0';
         compute_file_name(argv[1], origin_files[i], origin_file_name);
-        printf("\t%s\n", origin_file_name);
+        /* printf("\t%s\n", origin_file_name); */
         origin_file = fopen(origin_file_name, "r");
-        char test[] = "xzgrep.1.txt";
+        /* char test[] = "xzgrep.1.txt"; */
 
         /*
          *change file number in index file
@@ -359,36 +360,36 @@ void append_index(char *origin_files[], char *argv[])
             for (j = 0; j < read_bytes; ++j) {
                 *c_char = buffer[j];
 
-                if(strcmp(test, origin_files[859]) != 0){
-                    printf("haah");
-                    exit(0);
-                }
+                /* if(strcmp(test, origin_files[859]) != 0){ */
+                /*     printf("haah"); */
+                /*     exit(0); */
+                /* } */
 
                 if (isAlpha(c_char)) {
                     strcat(c_word, c_char);
 
-                    if(strcmp(test, origin_files[859]) != 0){
-                        printf("papa");
-                        exit(0);
-                    }
+                    /* if(strcmp(test, origin_files[859]) != 0){ */
+                    /*     printf("papa"); */
+                    /*     exit(0); */
+                    /* } */
 
                 }else{
                     /* TODO: check if add last word */
                     if (strlen(c_word) >= 3) {
-                        if(strcmp(test, origin_files[859]) != 0){
-                            printf("huhu");
-                            exit(0);
-                        }
+                        /* if(strcmp(test, origin_files[859]) != 0){ */
+                        /*     printf("huhu"); */
+                        /*     exit(0); */
+                        /* } */
                         get_stem(c_word, c_stem);
                         if (strlen(c_stem) == 0) {
                             printf("no stem\n");
                             exit(0);
                         }
                         /*printf("%s\t%s\n", c_word, c_stem);*/
-                        if(strcmp(test, origin_files[859]) != 0){
-                            printf("lulu");
-                            exit(0);
-                        }
+                        /* if(strcmp(test, origin_files[859]) != 0){ */
+                        /*     printf("lulu"); */
+                        /*     exit(0); */
+                        /* } */
 
                         update_wordfrequency(c_stem);
                     }
@@ -401,7 +402,7 @@ void append_index(char *origin_files[], char *argv[])
         /*clean_wordfrequency();*/
 
         fclose(origin_file);
-        printf("-------\n");
+        /* printf("-------\n"); */
     }
 
     free(preffix);

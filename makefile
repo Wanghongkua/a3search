@@ -1,5 +1,6 @@
 include mkinc.mak
 objects = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o libstemmer.o rank_file.o word_frequency.o tmp_index.o merge_index.o
+object = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o rank_file.o word_frequency.o tmp_index.o merge_index.o
 program_C_SRCS := $(wildcard *.c)
 
 ALL: $(objects)
@@ -38,8 +39,8 @@ merge_index.o: merge_index.c merge_index.h
 libstemmer.o: $(snowball_sources:.c=.o)
 	$(AR) -cru $@ $^
 
-debug: $(objects)
-	gcc -o a3search -g $(objects)
+debug: $(object)
+	g++ -o a3search -g $(object)
 
 clean:
 	rm -f *.o a3search libstemmer_c/src_c/*.o libstemmer_c/runtime/*.o libstemmer_c/libstemmer/*.o
