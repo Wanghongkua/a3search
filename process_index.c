@@ -22,13 +22,27 @@ unsigned int num_file;
  */
 void compute_file_name(char *src, char *file_name, char *name)
 {
-    strcpy(name, src);
+    if(src == NULL){
+        printf("no memory in compute_file_name for src");
+        exit(0);
+    }
+    if(file_name == NULL){
+        printf("no memory in compute_file_name for file_name");
+        exit(0);
+    }
+    /* strcpy(name, src); */
+    char c = *file_name;
+    memmove(name, src, strlen(src) + 1);
     if (strcmp(&src[strlen(src) - 1], slash) == 0) {
         strcat(name, file_name);
     }else{
         strcat(name, slash);
         strcat(name, file_name);
     }
+    /* if( c != *file_name){ */
+    /*     printf("haha"); */
+    /*     exit(0); */
+    /* } */
 }
 
 /*
@@ -108,10 +122,12 @@ void sort_origin_files(struct dirent *dp, DIR *origin_dir, char *origin_files[])
         }
 
         strcpy(origin_files[i], dp->d_name);
+        /* *(origin_files[i] + strlen(dp->d_name)) = '\0'; */
         i++;
     }
 
     qsort(origin_files, num_file, sizeof(char *), a_comp);
+    /* printf("%s", origin_files[860]); */
 }
 
 /*
@@ -165,6 +181,8 @@ void create_index(char *flag_file_name, char *argv[])
 
     char *origin_files[num_file];
     sort_origin_files(dp, origin_dir, origin_files);
+
+    printf("begin append_index\n");
 
     append_index(origin_files, argv);
 
@@ -326,30 +344,51 @@ void append_index(char *origin_files[], char *argv[])
                 change_file_name(index_file_name);
             }
         }
-
+        printf("\t\t%s", origin_files[i]);
+        *origin_file_name = '\0';
         compute_file_name(argv[1], origin_files[i], origin_file_name);
-        printf("\t\t%s\n", origin_file_name);
+        printf("\t%s\n", origin_file_name);
         origin_file = fopen(origin_file_name, "r");
+        char test[] = "xzgrep.1.txt";
 
         /*
          *change file number in index file
          */
         init_filenumber(i);
-
         while ((read_bytes = fread(buffer, 1, BUFFER_SIZE, origin_file))) {
             for (j = 0; j < read_bytes; ++j) {
                 *c_char = buffer[j];
+
+                if(strcmp(test, origin_files[859]) != 0){
+                    printf("haah");
+                    exit(0);
+                }
+
                 if (isAlpha(c_char)) {
                     strcat(c_word, c_char);
+
+                    if(strcmp(test, origin_files[859]) != 0){
+                        printf("papa");
+                        exit(0);
+                    }
+
                 }else{
                     /* TODO: check if add last word */
                     if (strlen(c_word) >= 3) {
+                        if(strcmp(test, origin_files[859]) != 0){
+                            printf("huhu");
+                            exit(0);
+                        }
                         get_stem(c_word, c_stem);
                         if (strlen(c_stem) == 0) {
                             printf("no stem\n");
                             exit(0);
                         }
                         /*printf("%s\t%s\n", c_word, c_stem);*/
+                        if(strcmp(test, origin_files[859]) != 0){
+                            printf("lulu");
+                            exit(0);
+                        }
 
                         update_wordfrequency(c_stem);
                     }
