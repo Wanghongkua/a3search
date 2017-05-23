@@ -247,12 +247,11 @@ void merge_index(char *argv[], unsigned int num_file)
 
     save_to_one(num_block, index_files, first_str, final_index, final_lookup);
 
-    printf("lal\n");
     for (i = 0; i < num_block; ++i) {
         fclose(index_files[i]);
         free(first_str[i]);
     }
-    printf("haha\n");
+
     fclose(final_index);
     fclose(final_lookup);
 

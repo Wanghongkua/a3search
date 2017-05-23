@@ -3,6 +3,17 @@
 #include <string.h>
 #include "merge_index.h"
 
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
 unsigned int block_num;
 
 void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[], FILE *final_index, FILE *final_lookup)
@@ -33,21 +44,30 @@ void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[],
                 }
             }
         }
+        /* for (i = 0; i < num_block; ++i) { */
+        /*     printf("%s\t%d\n", first_str[i], block_mask[i]); */
+        /* } */
+        /* printf("---------\n"); */
 
         find_smallest(first_str, block_mask);
 
-        /*for (i = 0; i < num_block; ++i) {*/
-            /*printf("%s\t%d\n", first_str[i], block_mask[i]);*/
-        /*}*/
-        /*printf("---------\n");*/
+        /* for (i = 0; i < num_block; ++i) { */
+            /* if(block_mask[i]){ */
+            /*     printf("%d\t%s\n",strlen(first_str[i]), first_str[i]); */
+            /*     break; */
+            /* } */
+            /* printf("%s\t%d\n", first_str[i], block_mask[i]); */
+        /* } */
+        /* exit(0); */
+        /* printf("---------\n"); */
 
         save_to_file(first_str, block_mask, index_files, final_index);
 
-        /*printf("**********\n");*/
-        /*for (i = 0; i < num_block; ++i) {*/
-            /*printf("%s\t%d\n", first_str[i], block_mask[i]);*/
-        /*}*/
-        /*printf("---------\n");*/
+        /* printf("**********\n"); */
+        /* for (i = 0; i < num_block; ++i) { */
+        /*     printf("%s\t%d\n", first_str[i], block_mask[i]); */
+        /* } */
+        /* printf("---------\n"); */
 
         save_lookup(ftell(final_index), final_lookup);
     }
@@ -56,12 +76,20 @@ void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[],
 void save_lookup(int pos, FILE *final_lookup)
 {
     short int i;
-    char c;
+    char *c;
+    c = malloc(sizeof(char) * 2);
+    *(c+ 1) = '\0';
     for (i = 0; i < 4; ++i) {
-        c = pos & 0b11111111;
-        fwrite(&c, 1, 1, final_lookup);
-        pos >>= 8;
+        if(pos != 0){
+            *c = pos & 0b11111111;
+            fwrite(c, 1, 1, final_lookup);
+            pos >>= 8;
+        } else {
+            *c = 0b00000000;
+            fwrite(c, 1, 1, final_lookup);
+        }
     }
+    free(c);
 }
 
 void save_to_file(char *first_str[], short unsigned int block_mask[], FILE *index_files[], FILE *final_index)
@@ -72,7 +100,7 @@ void save_to_file(char *first_str[], short unsigned int block_mask[], FILE *inde
     /*short int state;*/
 
     short int printed = 1;
-
+    short int readbyte = 0;
     for (i = 0; i < block_num; ++i) {
         if (block_mask[i]) {
             if (first_str[i] == NULL) {
@@ -92,7 +120,15 @@ void save_to_file(char *first_str[], short unsigned int block_mask[], FILE *inde
             fwrite(&c, 1, 1, final_index);
 
             while (1) {
-                c = getc(index_files[i]);
+                /* printf("%d--------%d\n", i, block_num); */
+                /* printf(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(c)); */
+                /* c = getc(index_files[i]); */
+                readbyte = fread(&c, 1, 1, index_files[i]);
+                if(readbyte == 0){
+                    break;
+                }
+                /* printf(BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(c)); */
+                /* printf("\n%ld========\n", ftell(index_files[i])); */
                 if (c == EOF) {
                     break;
                 } else if (c == 0b00000000) {
@@ -148,28 +184,31 @@ void find_smallest(char *first_str[], short unsigned int block_mask[])
 int add_to_first_str(FILE *indexfile, char *first_str)
 {
     short unsigned int i;
-    char c;
+    char *c;
+    c = malloc(sizeof(char) * 2);
+    *(c + 1) = '\0';
     if (first_str == NULL) {
         printf("no memory in add_to_first_str for first_str\n");
         exit(0);
     }
     /*printf("this is th pos: %ld\n", ftell(indexfile));*/
     /*printf("*\n");*/
-    /**first_str = '\0';*/
+    *first_str = '\0';
 
     while (1) {
-        c = getc(indexfile);
-        if (c == EOF) {
+        *c = getc(indexfile);
+        if (*c == EOF) {
             /*printf("this is eof: %s\n", first_str);*/
             return 1;
         }
-        if (c == 0b00000001) {
+        if (*c == 0b00000001) {
             /*printf("%s\t", first_str);*/
             break;
         } else {
-            strcat(first_str, &c);
+            strcat(first_str, c);
         }
     }
+    free(c);
     return 0;
 }
 
