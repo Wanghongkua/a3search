@@ -240,5 +240,3 @@ void find_max_size(FILE *index_files[], long int file_size[])
         fseek(index_files[i], 1, SEEK_SET);
     }
 }
-
-
