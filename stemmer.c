@@ -35,7 +35,7 @@ void get_stem(char *src, char *dest)
     while(1) {
         if (i == strlen(src)) {
             const sb_symbol * stemmed = sb_stemmer_stem(stemmer, b, i);
-            free(b);
+            /*free(b);*/
             /* dest = (char *) stemmed; */
             memmove(dest, (char *)stemmed, strlen((char *)stemmed) + 1);
             return;
