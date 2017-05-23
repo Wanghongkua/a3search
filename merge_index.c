@@ -22,6 +22,7 @@ void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[],
         unsigned int i;
         for (i = 0; i < num_block; ++i) {
             if (block_mask[i]) {
+                /*printf("%d\n", i);*/
                 flag = add_to_first_str(index_files[i], first_str[i]);
                 /* TODO: change here */
                 if (flag) {
