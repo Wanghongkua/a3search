@@ -13,7 +13,6 @@ void update_wordfrequency(char *word)
 {
     if (word == NULL) {
         cout << "no memory in update_wordfrequency for word" << endl;
-        exit(0);
     }
     if (word_frequency[word] == NULL) {
         word_frequency[word] = new struct word_element;
@@ -62,7 +61,6 @@ void clean_wordfrequency()
         free_posting(it->second->first_posting);
         if (it->second == NULL) {
             cout << "no memory in clean_wordfrequency for it->second" << endl;
-            exit(0);
         }
 
         delete it->second;
