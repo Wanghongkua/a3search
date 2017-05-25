@@ -380,11 +380,10 @@ void append_index(char *origin_files[], char *argv[])
                 }else{
                     /* TODO: check if add last word */
                     if (strlen(c_word) >= 3) {
-                        /* if(strcmp(test, origin_files[859]) != 0){ */
-                        /*     printf("huhu"); */
-                        /*     exit(0); */
-                        /* } */
                         get_stem(c_word, c_stem);
+                         /*if(strcmp(c_word, "Jeffrey") == 0){ */
+                             /*printf("%s\t%s\n", c_word, c_stem);*/
+                         /*} */
                         if (strlen(c_stem) == 0) {
                             printf("no stem\n");
                             exit(0);

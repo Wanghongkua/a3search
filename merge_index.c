@@ -44,51 +44,49 @@ void save_to_one(unsigned int num_block, FILE *index_files[], char *first_str[],
                 }
             }
         }
-        /* for (i = 0; i < num_block; ++i) { */
-        /*     printf("%s\t%d\n", first_str[i], block_mask[i]); */
-        /* } */
         /* printf("---------\n"); */
 
         find_smallest(first_str, block_mask);
 
         /* for (i = 0; i < num_block; ++i) { */
-            /* if(block_mask[i]){ */
-            /*     printf("%d\t%s\n",strlen(first_str[i]), first_str[i]); */
-            /*     break; */
-            /* } */
-            /* printf("%s\t%d\n", first_str[i], block_mask[i]); */
+        /* if(block_mask[i]){ */
+        /*     printf("%d\t%s\n",strlen(first_str[i]), first_str[i]); */
+        /*     break; */
         /* } */
+        /*for (i = 0; i < num_block; ++i) { */
+            /*printf("%s\t%d\n", first_str[i], block_mask[i]); */
+        /*} */
         /* exit(0); */
-        /* printf("---------\n"); */
+         /*printf("---------\n"); */
 
         save_to_file(first_str, block_mask, index_files, final_index);
 
         /* printf("**********\n"); */
-        /* for (i = 0; i < num_block; ++i) { */
-        /*     printf("%s\t%d\n", first_str[i], block_mask[i]); */
-        /* } */
+        /*for (i = 0; i < num_block; ++i) { */
+            /*printf("%s\t%d\n", first_str[i], block_mask[i]); */
+        /*} */
         /* printf("---------\n"); */
 
         save_lookup(ftell(final_index), final_lookup);
     }
 }
 
-void save_lookup(int pos, FILE *final_lookup)
+void save_lookup(unsigned int pos, FILE *final_lookup)
 {
+    /*printf("%u\n", pos);*/
+    /*exit(0);*/
+    pos++;
     short int i;
     char *c;
     c = malloc(sizeof(char) * 2);
     *(c+ 1) = '\0';
     for (i = 0; i < 4; ++i) {
-        if(pos != 0){
-            *c = pos & 0b11111111;
-            fwrite(c, 1, 1, final_lookup);
-            pos >>= 8;
-        } else {
-            *c = 0b00000000;
-            fwrite(c, 1, 1, final_lookup);
-        }
+        /**c = (pos >> ((3 - i) * 8)) & 0b11111111;*/
+        *c = pos & 0b11111111;
+        fwrite(c, 1, 1, final_lookup);
+        pos >>= 8;
     }
+    /*printf("\n");*/
     free(c);
 }
 
@@ -145,9 +143,24 @@ void save_to_file(char *first_str[], short unsigned int block_mask[], FILE *inde
 
 void find_smallest(char *first_str[], short unsigned int block_mask[])
 {
-    char *c = "~";
+    char *c = NULL;
+    /*char *c = NULL;*/
+    /*c = malloc(sizeof(char) * 3);*/
+    /**c = 0b01111111;*/
+    /**(c+1) = '\0';*/
+    /*short int flag = 0;*/
+
     short unsigned int i, count = 0, num = 0;
     short unsigned int ret[block_num];
+    c = first_str[0];
+    for (i = 1; i < block_num; ++i) {
+        if (strcmp(first_str[i], c) < 0) {
+            c = first_str[i];
+        } 
+    }
+    /*printf("++++++++\n");*/
+    /*printf("%s\n", c);*/
+    /*printf("++++++++\n");*/
 
     int result = 0;
     for (i = 0; i < block_num; ++i) {
@@ -155,21 +168,34 @@ void find_smallest(char *first_str[], short unsigned int block_mask[])
             continue;
         }
         result = strcmp(first_str[i], c);
-        /*printf("%s\t%s\t%d\n", first_str[i], c, result);*/
         if (result == 0) {
-            ret[count] = i;
-            count++;
-        } else if (result < 0) {
-            c = first_str[i];
-            count = 0;
             ret[count] = i;
             count++;
         }
     }
+    /*int result = 0;*/
+    /*for (i = 0; i < block_num; ++i) {*/
+        /*if (*first_str[i] == '~') {*/
+            /*continue;*/
+        /*}*/
+        /*result = strncmp(first_str[i], c, 1);*/
+        /*if (result == 0) {*/
+            /*ret[count] = i;*/
+            /*count++;*/
+        /*} else if (result < 0) {*/
+            /*c = first_str[i];*/
+            /*count = 0;*/
+            /*ret[count] = i;*/
+            /*count++;*/
+        /*}*/
+    /*}*/
     /*printf("+++++++++++\n");*/
     for (i = 0; i < block_num; ++i) {
         if (num == count) {
             block_mask[i] = 0;
+            /*printf("%lu\n", strlen(first_str[i]));*/
+            /*printf("%s\t%s\t%d\n", first_str[i], c, strncmp(first_str[i], c, sizeof(char)));*/
+            /*printf("%d\n", block_num);*/
         } else if (i == ret[num]) {
             block_mask[i] = 1;
             num++;
