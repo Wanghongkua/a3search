@@ -10,7 +10,6 @@ void regular_search(int argc, char *argv[])
     const int STARTING = 3;
     const int N_QUERY = argc - STARTING;
 
-    /*unsigned int i;*/
     char *queries[N_QUERY];
     char *query_stem[N_QUERY];
 
@@ -24,10 +23,14 @@ void regular_search(int argc, char *argv[])
      */
     process_index(argv);
 
-    printf("finish print index\n");
-    /*exit(0);*/
+    /*
+     *after got index file load it and search for queries
+     */
     load_index(argv, query_stem, N_QUERY);
 
+    /*
+     *free query array
+     */
     free_query(queries, query_stem, N_QUERY);
 
 }

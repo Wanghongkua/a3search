@@ -10,6 +10,9 @@ sb_symbol * b;
 #define INC 10
 int lim = INC;
 
+/*
+ *create stemmer
+ */
 void init_stemmer()
 {
     char *language = "english";
@@ -23,20 +26,25 @@ void init_stemmer()
     }
 }
 
+/*
+ *free up stemmer
+ */
 void delete_stemmer()
 {
     sb_stemmer_delete(stemmer);
     free(b);
 }
 
+/*
+ *get stemmed word
+ */
 void get_stem(char *src, char *dest)
 {
     int i = 0;
     while(1) {
         if (i == strlen(src)) {
             const sb_symbol * stemmed = sb_stemmer_stem(stemmer, b, i);
-            /*free(b);*/
-            /* dest = (char *) stemmed; */
+
             memmove(dest, (char *)stemmed, strlen((char *)stemmed) + 1);
             return;
         }
@@ -52,24 +60,4 @@ void get_stem(char *src, char *dest)
         b[i] = ch;
         i++;
     }
-    /* int j; */
-    /* strcpy((char *)b, src); */
-    /* memmove((char *)b, src, strlen(src) + 1); */
-    /* for (j = 0; j < strlen((char *)b); ++j) { */
-    /*     b[j] = tolower(b[j]); */
-    /* } */
-    /* j = strlen(src); */
-    /* const sb_symbol * stemmed = sb_stemmer_stem(stemmer, b, j); */
-
-    /* if (stemmed == NULL) { */
-    /*     fprintf(stderr, "Out of memory"); */
-    /*     exit(1); */
-    /* } */
-    /* else { */
-    /*     strcpy(dest, (char *)stemmed); */
-    /*     memmove(dest, (char *)stemmed, strlen((char *)stemmed) + 1); */
-    /* } */
 }
-    /* sb_symbol * b = (sb_symbol *) malloc(lim * sizeof(sb_symbol)); */
-
-

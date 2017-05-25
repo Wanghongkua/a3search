@@ -9,6 +9,9 @@ using namespace std;
 std::map<std::string, struct word_element *> word_frequency;
 unsigned int filenumber = 0;
 
+/*
+ *update word frequency to map
+ */
 void update_wordfrequency(char *word)
 {
     if (word == NULL) {
@@ -31,11 +34,17 @@ void update_wordfrequency(char *word)
     word_frequency[word]->last_posting->frequency += 1;
 }
 
+/*
+ *store file number to global variable
+ */
 void init_filenumber(unsigned int f_num)
 {
     filenumber = f_num;
 }
 
+/*
+ *change to next post
+ */
 void change_to_next()
 {
     std::map<std::string, struct word_element *>::iterator it;

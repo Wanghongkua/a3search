@@ -75,9 +75,9 @@ void compress_print(unsigned int number, FILE *index_file)
     }
 
     while (number != 0) {
-        c = (number & 0b01111111) | (0b10000000);
+        c = (number & 0b00111111) | (0b10000000);
         fwrite(&c, 1, 1, index_file);
-        number >>= 7;
+        number >>= 6;
     }
     
 }

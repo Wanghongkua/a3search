@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <math.h>
 #include "stemmer.h"
 #include "word_frequency.h"
@@ -39,10 +41,6 @@ void compute_file_name(char *src, char *file_name, char *name)
         strcat(name, slash);
         strcat(name, file_name);
     }
-    /* if( c != *file_name){ */
-    /*     printf("haha"); */
-    /*     exit(0); */
-    /* } */
 }
 
 /*
@@ -57,59 +55,23 @@ int isAlpha(char *c_char)
 }
 
 /*
- *compute flag file name
- */
-char * compute_flag_file(char *dir)
-{
-    char *flag_file_name;
-    char flag[] = "flag.fuckflag";
-
-    flag_file_name = malloc(sizeof(char) * (strlen(dir) + strlen(flag) + 1));
-
-    compute_file_name(dir, flag, flag_file_name);
-
-    return flag_file_name;
-}
-
-/*
- *check if index exist
- */
-int exist_index(char *flag_file_name)
-{
-    if( access( flag_file_name, F_OK ) != -1 ) {
-        // file exists
-        return 1;
-    } else {
-        // file doesn't exist
-        return 0;
-    }
-
-}
-
-/*
  *create or load index file
  */
 void process_index(char *argv[])
 {
-    char *flag_file_name;
-    flag_file_name = compute_flag_file(argv[2]);
-
-    if (exist_index(flag_file_name)) {
-        /*load_index()*/
-        /*create_index(flag_file_name, argv);*/
-        /*load_query(argv);*/
-    } else {
-        create_index(flag_file_name, argv);
-        printf("finish create_index\n");
+    struct stat st = {0};
+    if (stat(argv[2], &st) == -1) {
+        mkdir(argv[2], 0700);
+        create_index(argv);
     }
-
-    free(flag_file_name);
 }
 
+/*
+ *sort origin files, to store file number instead of file name
+ */
 void sort_origin_files(struct dirent *dp, DIR *origin_dir, char *origin_files[])
 {
     unsigned int i = 0;
-    /*FILE *origin_file_pointer[num_file];*/
 
     rewinddir(origin_dir);
     while ((dp = readdir(origin_dir)) != NULL) {
@@ -123,12 +85,11 @@ void sort_origin_files(struct dirent *dp, DIR *origin_dir, char *origin_files[])
         }
 
         strcpy(origin_files[i], dp->d_name);
-        /* *(origin_files[i] + strlen(dp->d_name)) = '\0'; */
         i++;
     }
 
+    /*since no files can have same name, unstable sort can be performed*/
     qsort(origin_files, num_file, sizeof(char *), a_comp);
-    /* printf("%s", origin_files[860]); */
 }
 
 /*
@@ -141,6 +102,9 @@ int a_comp(const void * elem1, const void * elem2)
     return strcmp(*aa, *bb);
 }
 
+/*
+ *find out how many files in origin dir
+ */
 void count_file_number(DIR *origin_dir, struct dirent *dp)
 {
     num_file = 0;
@@ -156,16 +120,8 @@ void count_file_number(DIR *origin_dir, struct dirent *dp)
 /*
  *create index files
  */
-void create_index(char *flag_file_name, char *argv[])
+void create_index(char *argv[])
 {
-    FILE *index_flag_file;
-
-    /*
-     *add flag
-     */
-    index_flag_file = fopen(flag_file_name, "w");
-    fclose(index_flag_file);
-
     /*
      *open origin dir
      */
@@ -176,29 +132,41 @@ void create_index(char *flag_file_name, char *argv[])
 
     FILE *origin_file;
 
+    /*
+     *init stemmer
+     */
     init_stemmer();
 
+    /*
+     *find how many number of files in origin dir
+     */
     count_file_number(origin_dir, dp);
 
+    /*
+     *sort it base on increasing order
+     */
     char *origin_files[num_file];
     sort_origin_files(dp, origin_dir, origin_files);
 
-    printf("begin append_index\n");
-
+    /*
+     *make temperary index file
+     */
     append_index(origin_files, argv);
 
-    printf("finish append_index\n");
-    /* exit(0); */
-
-
+    /*
+     *free origin file names
+     */
     free_origin_files(origin_files);
 
-
+    /*
+     *free stemmer
+     */
     delete_stemmer();
 
+    /*
+     *merge tmp index files to 2 file
+     */
     merge_index(argv, num_file);
-
-    printf("finish merge_index\n");
 
     closedir(origin_dir);
 }
@@ -252,6 +220,12 @@ void merge_index(char *argv[], unsigned int num_file)
         free(first_str[i]);
     }
 
+    for (i = 0; i < num_block; ++i) {
+        sprintf(index_block, "%d", i);
+        compute_file_name(argv[2], index_block, index_file_name);
+        remove(index_file_name);
+    }
+
     fclose(final_index);
     fclose(final_lookup);
 
@@ -261,6 +235,9 @@ void merge_index(char *argv[], unsigned int num_file)
 
 }
 
+/*
+ *use up to 200 blocks to store word, filenumber, frequency in each files
+ */
 void append_index(char *origin_files[], char *argv[])
 {
     char *c_char;
@@ -312,9 +289,6 @@ void append_index(char *origin_files[], char *argv[])
     unsigned int block_size;
     if (num_file > BLOCK) {
         block_size = ceil(num_file / BLOCK);
-        /*printf("%d\n", block_size);*/
-        /*exit(0);*/
-        /*block_size = 1;*/
     } else {
         block_size = 1;
     }
@@ -326,13 +300,19 @@ void append_index(char *origin_files[], char *argv[])
 
     char index_block[100];
 
+    /*
+     *compute block index file name
+     */
     sprintf(index_block, "%d", 0);
     compute_file_name(argv[2], index_block, index_file_name);
     change_file_name(index_file_name);
 
     for (i = 0; i < num_file + 1; ++i) {
-        /* printf("\t\t%d\n", i); */
         if (i == num_file) {
+
+            /*
+             *clean word_frequency and save to file
+             */
             clean_wordfrequency();
             free_filename();
             break;
@@ -343,18 +323,18 @@ void append_index(char *origin_files[], char *argv[])
                 free_filename();
                 sprintf(index_block, "%d", i / block_size);
 
-                /* printf("%s\n", index_block); */
-
                 compute_file_name(argv[2], index_block, index_file_name);
                 change_file_name(index_file_name);
             }
         }
-        /* printf("\t\t%s", origin_files[i]); */
+
+        /*
+         *compute origin file name and search for word
+         */
         *origin_file_name = '\0';
         compute_file_name(argv[1], origin_files[i], origin_file_name);
-        /* printf("\t%s\n", origin_file_name); */
+
         origin_file = fopen(origin_file_name, "r");
-        /* char test[] = "xzgrep.1.txt"; */
 
         /*
          *change file number in index file
@@ -364,35 +344,18 @@ void append_index(char *origin_files[], char *argv[])
             for (j = 0; j < read_bytes; ++j) {
                 *c_char = buffer[j];
 
-                /* if(strcmp(test, origin_files[859]) != 0){ */
-                /*     printf("haah"); */
-                /*     exit(0); */
-                /* } */
-
                 if (isAlpha(c_char)) {
                     strcat(c_word, c_char);
 
-                    /* if(strcmp(test, origin_files[859]) != 0){ */
-                    /*     printf("papa"); */
-                    /*     exit(0); */
-                    /* } */
-
                 }else{
-                    /* TODO: check if add last word */
-                    if (strlen(c_word) >= 3) {
+                    /* TODO: check if add stop word */
+                    if (strlen(c_word) >= 2) {
                         get_stem(c_word, c_stem);
-                         /*if(strcmp(c_word, "Jeffrey") == 0){ */
-                             /*printf("%s\t%s\n", c_word, c_stem);*/
-                         /*} */
+
                         if (strlen(c_stem) == 0) {
                             printf("no stem\n");
                             exit(0);
                         }
-                        /*printf("%s\t%s\n", c_word, c_stem);*/
-                        /* if(strcmp(test, origin_files[859]) != 0){ */
-                        /*     printf("lulu"); */
-                        /*     exit(0); */
-                        /* } */
 
                         update_wordfrequency(c_stem);
                     }
@@ -400,12 +363,12 @@ void append_index(char *origin_files[], char *argv[])
                 }
             }
         }
+        /*
+         *change to next file
+         */
         change_to_next();
-        /* TODO: same to file */
-        /*clean_wordfrequency();*/
 
         fclose(origin_file);
-        /* printf("-------\n"); */
     }
 
     free(preffix);
