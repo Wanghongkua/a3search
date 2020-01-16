@@ -1,10 +1,17 @@
 Struct
 =======
 
+Search Method
+----------------
+Example Search Query: ./a3search files/books200m index_files "apple"
+  - The first argument is the file folder needed to be searched
+  - The second argument is the name of the folder storing the generated indexes
+  - The third argument is the word needed to be searched
+
 Program Architecture
 ----------------
   - a3search.c
-        determine performe regular search or concept search
+        determine perform regular search or concept search
   - regular_search.c
         sort the query for each search and call process_index() to create index files and call load_index()
         to load corresponding posting list
@@ -12,9 +19,9 @@ Program Architecture
         sort the queries and do stem
   - process_index.c
         create index if not exist:
-            1) first create temperary index files with max numebr of 200 blocks.
+            1) first create temporary index files with max number of 200 blocks.
             2) merge those blocks to 1 file "final_index.txt", and 1 lookup file for binary search "final_lookup.txt"
-            3) delete temperary files
+            3) delete temporary files
   - merge_index.c
         merge tmp index files to 1 file
   - search_index.c
@@ -37,3 +44,7 @@ Index Architecture
         Due To "0xff" is for "EOF" !!!!
   - Lookup
         for each word in index file, store it's position in index file to lookup file, fix in 4 bytes.
+
+TODO
+----------------
+Add concept search in the future
