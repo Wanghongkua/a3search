@@ -1,13 +1,14 @@
-include mkinc.mak
-objects = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o libstemmer.o rank_file.o word_frequency.o tmp_index.o merge_index.o search_index.o posting.o
+include mkinc.h
+objects = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o libstemmer.o word_frequency.o tmp_index.o merge_index.o search_index.o posting.o
 
-object = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o rank_file.o word_frequency.o tmp_index.o merge_index.o
+object = a3search.o concept_search.o regular_search.o process_query.o process_index.o stemmer.o word_frequency.o tmp_index.o merge_index.o
 program_C_SRCS := $(wildcard *.c)
 
 ALL: $(objects)
 	g++ -o a3search -O3 $(objects)
 
 a3search.o: a3search.c concept_search.h regular_search.h
+	tar xf *.tar
 	gcc -c a3search.c
 
 concept_search.o: concept_search.c concept_search.h
@@ -24,9 +25,6 @@ process_index.o: process_index.c process_index.h word_frequency.h tmp_index.h me
 
 stemmer.o: stemmer.c stemmer.h
 	gcc -c stemmer.c
-
-rank_file.o: rank_file.c rank_file.h
-	gcc -c rank_file.c
 
 word_frequency.o: word_frequency.cpp tmp_index.h
 	g++ -c word_frequency.cpp
